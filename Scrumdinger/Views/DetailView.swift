@@ -9,9 +9,10 @@ import SwiftUI
 import MyThemeKit
 
 struct DetailView: View {
-    let scrum : DailyScrum
     
+    @Binding var scrum : DailyScrum
     @State private var isPresentingEditView = false
+    @State private var editingScrum = DailyScrum.emptyScrum
     
     var body: some View {
         List {
@@ -51,11 +52,12 @@ struct DetailView: View {
         .toolbar {
             Button("Edit"){
                 isPresentingEditView = true
+                editingScrum = scrum
             }
         }
         .sheet(isPresented:$isPresentingEditView){
             NavigationView{
-                DetailEditView()
+                DetailEditView(scrum: $editingScrum)
                     .navigationTitle(scrum.title)
                     .toolbar {
                         ToolbarItem(placement: .cancellationAction){
@@ -66,6 +68,8 @@ struct DetailView: View {
                         ToolbarItem(placement: .confirmationAction){
                             Button("Done") {
                                 isPresentingEditView = false
+                                scrum = editingScrum
+
                             }
                         }
                     }
@@ -74,8 +78,30 @@ struct DetailView: View {
     }
 }
 
-struct ScrumDetailView_Previews: PreviewProvider {
+//struct ScrumDetailView_Previews: PreviewProvider {
+//    static var previews: some View {
+//        DetailView(scrum: DailyScrum.sampleData[0])
+//    }
+//}
+struct ScrumDetailEditView_Previews: PreviewProvider {
     static var previews: some View {
-        DetailView(scrum: DailyScrum.sampleData[0])
+        StatefulPreviewWrapper3(DailyScrum.sampleData[0]) { scrum in
+            DetailView(scrum: scrum)
+        }
+    }
+}
+
+
+struct StatefulPreviewWrapper3<Value, Content: View> : View {
+    @State private var value : Value
+    private let content : (Binding<Value>) -> Content
+    
+    init (_ initialValue: Value, @ViewBuilder content: @escaping (Binding<Value>) -> Content) {
+        _value = State(initialValue: initialValue)
+        self.content = content
+    }
+    
+    var body: some View{
+        content($value)
     }
 }

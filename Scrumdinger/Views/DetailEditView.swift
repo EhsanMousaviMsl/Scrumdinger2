@@ -9,7 +9,7 @@ import SwiftUI
 
 struct DetailEditView: View {
     
-    @State private var scrum = DailyScrum.emptyScrum
+    @Binding var scrum : DailyScrum
     @State private var attendeeName = ""
     
     var body: some View {
@@ -27,6 +27,7 @@ struct DetailEditView: View {
                         .accessibilityHidden(true)
                 }
             }
+            ThemePicker(selection: $scrum.theme)
             Section(header: Text("Attendees")){
                 ForEach(scrum.attendees){ attendee in
                     Text("\(attendee.name)")
@@ -53,8 +54,26 @@ struct DetailEditView: View {
     }
 }
 
+
 struct DetailEditView_Previews: PreviewProvider {
     static var previews: some View {
-        DetailEditView()
+        StatefulPreviewWrapper2(DailyScrum.sampleData[0]) { scrum in
+            DetailEditView(scrum: scrum)
+        }
+    }
+}
+
+
+struct StatefulPreviewWrapper2<Value, Content: View> : View {
+    @State private var value : Value
+    private let content : (Binding<Value>) -> Content
+    
+    init (_ initialValue: Value, @ViewBuilder content: @escaping (Binding<Value>) -> Content) {
+        _value = State(initialValue: initialValue)
+        self.content = content
+    }
+    
+    var body: some View{
+        content($value)
     }
 }
