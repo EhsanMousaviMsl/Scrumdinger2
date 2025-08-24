@@ -11,6 +11,8 @@ struct DetailEditView: View {
     
     @Binding var scrum : DailyScrum
     @State private var attendeeName = ""
+    let saveEdits : (DailyScrum)-> Void
+    @Environment(\.dismiss) private var dismiss
     
     var body: some View {
         Form {
@@ -51,6 +53,20 @@ struct DetailEditView: View {
                 }
             }
         }
+        .toolbar{
+            ToolbarItem(placement : .cancellationAction) {
+                Button("Cancle"){
+                    dismiss()
+                }
+            
+            }
+            ToolbarItem(placement: .confirmationAction){
+                Button("Done") {
+                    saveEdits(scrum)
+                    dismiss()
+                }
+            }
+        }
     }
 }
 
@@ -58,7 +74,7 @@ struct DetailEditView: View {
 struct DetailEditView_Previews: PreviewProvider {
     static var previews: some View {
         StatefulPreviewWrapper2(DailyScrum.sampleData[0]) { scrum in
-            DetailEditView(scrum: scrum)
+            DetailEditView(scrum: scrum, saveEdits: {_ in})
         }
     }
 }

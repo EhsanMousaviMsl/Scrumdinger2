@@ -6,48 +6,59 @@
 //
 
 import SwiftUI
+import AVFoundation
 
 struct MeetingView: View {
+    
+    @Binding var scrum : DailyScrum
+    @StateObject private var scrumTimer = ScrumTimer()
+    
+    private let player = AVPlayer.dingPlayer
+    
     var body: some View {
-        VStack{
-            ProgressView(value: 10, total: 15)
-            HStack{
-                VStack(alignment:.leading){
-                    Text("Seconds Elapsed")
-                        .font(.caption)
-                    Label("300",systemImage: "hourglass.tophalf.fill")
+        ZStack{
+            RoundedRectangle(cornerRadius: 16.0)
+                .fill(scrum.theme.mainColor)
+            VStack{
+                MeetingHeaderView(secondElapsed: scrumTimer.secondsElapsed, secondReminding: scrumTimer.secondsRemaining, theme: scrum.theme)
+                Circle()
+                    .strokeBorder(lineWidth: 24)
+                MeetingFooterView(speakers: scrumTimer.speakers, skipAction: scrumTimer.skipSpeaker)
 
-                }
-                Spacer()
-                VStack(alignment:.trailing){
-                    Text("Seconds Remaining")
-                        .font(.caption)
-                    Label("600", systemImage: "hourglass.bottomhalf.fill")
-                }
-            }
-            .accessibilityElement(children: .ignore)
-            .accessibilityLabel("Time remaining")
-            .accessibilityValue("10 Minutes")
-            
-            Circle()
-                .strokeBorder(lineWidth: 24)
-            
-            HStack{
-                Text("Speaker 1 of 3")
-                Spacer()
-                Button(action:{}){
-                    Image(systemName: "forward.fill")
-                }
-                .accessibilityLabel("Next Speaker")
-            }
 
+            }
         }
+        
         .padding()
+        .foregroundColor(scrum.theme.accentColor)
+        .onAppear {
+            scrumTimer.reset(lengthInMinutes: scrum.lengthInMinutes, attendeeNames: scrum.attendees.map{$0.name})
+            scrumTimer.startScrum()
+            scrumTimer.speakerChangedAction = {
+                player.seek(to: .zero)
+                player.play()
+            }
+        }
+        .onDisappear{
+            scrumTimer.stopScrum()
+        }
+        .navigationBarTitleDisplayMode(.inline)
     }
 }
 
 struct ContentView_Previews: PreviewProvider {
     static var previews: some View {
-        MeetingView()
+        MeetingView(scrum: .constant(DailyScrum.sampleData[0]))
+    }
+}
+
+
+
+extension AVPlayer {
+    static var dingPlayer : AVPlayer {
+        guard let url = Bundle.main.url(forResource: "ding", withExtension: "wav") else {
+            fatalError("Faild to find ding.wav in bundle")
+        }
+        return AVPlayer(url:url)
     }
 }

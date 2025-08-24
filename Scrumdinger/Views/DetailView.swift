@@ -17,7 +17,7 @@ struct DetailView: View {
     var body: some View {
         List {
             Section(header: Text("Meeting Info")){
-                NavigationLink(destination: MeetingView()){
+                NavigationLink(destination: MeetingView(scrum: $scrum)){
                     Label("Start Meeting", systemImage: "timer")
                         .font(.headline)
                         .foregroundColor(scrum.theme.mainColor)
@@ -57,22 +57,10 @@ struct DetailView: View {
         }
         .sheet(isPresented:$isPresentingEditView){
             NavigationView{
-                DetailEditView(scrum: $editingScrum)
+                DetailEditView(scrum: $editingScrum, saveEdits: {dailyScrum in
+                    scrum = editingScrum
+                })
                     .navigationTitle(scrum.title)
-                    .toolbar {
-                        ToolbarItem(placement: .cancellationAction){
-                            Button("Cancel") {
-                                isPresentingEditView = false
-                            }
-                        }
-                        ToolbarItem(placement: .confirmationAction){
-                            Button("Done") {
-                                isPresentingEditView = false
-                                scrum = editingScrum
-
-                            }
-                        }
-                    }
             }
         }
     }
